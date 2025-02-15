@@ -8,6 +8,7 @@ import lt.techin.car_rental.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -35,7 +36,8 @@ public class CarController {
   }
 
   @GetMapping("/cars")
-  public ResponseEntity<List<CarResponseDTO>> getCars() {
+  public ResponseEntity<List<CarResponseDTO>> getCars(Authentication authentication) {
+    System.out.println("User Roles: " + authentication.getAuthorities()); // 🔥 Debugging
     return ResponseEntity.ok().body(CarMapper.toCarResponseDTOList(carService.getAllCars()));
   }
 
@@ -59,9 +61,9 @@ public class CarController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
     Car carFromDb = carService.getCarById(id);
-    carFromDb.setBrand(carRequestDTO.brand());
-    carFromDb.setModel(carRequestDTO.model());
-    carFromDb.setYear(carRequestDTO.year());
+    carFromDb.setBrand(carRequestDTO.brand() == null ? carFromDb.getBrand() : carRequestDTO.brand());
+    carFromDb.setModel(carRequestDTO.model() == null ? carFromDb.getModel() : carRequestDTO.model());
+    carFromDb.setYear(carRequestDTO.year() == 0 ? carFromDb.getYear() : carRequestDTO.year());
     carService.save(carFromDb);
     return ResponseEntity.ok().body(CarMapper.toResponseDTO(carFromDb));
   }
